@@ -1,121 +1,138 @@
 prgmFORTH
 
-// Main Forth Compiler Program
-// Input: Str0 (Forth code with → delimiters)
-// Output: Str1 (Continuous hex string)
-
 ClrHome
-Disp "FORTH COMPILER v0.1"
-Disp "Input in Str0"
-Disp "Output to Str1"
-Pause
-
-// Initialize
 "" → Str1
 1 → P
+length(Str0) → L
 
-// Main tokenizer loop
-While P ≤ length(Str0)
-  inString(Str0, "→", P) → D
-  
-  If D = 0 Then
-    length(Str0) + 1 → D
-  End
-  
-  sub(Str0, P, D - P) → T
-  
-  // Trim leading spaces
-  While length(T) > 0 and sub(T, 1, 1) = " "
-    sub(T, 2, length(T) - 1) → T
-  End
-  
-  // Trim trailing spaces
-  While length(T) > 0 and sub(T, length(T), 1) = " "
-    sub(T, 1, length(T) - 1) → T
-  End
-  
-  // Process non-empty tokens
-  If T ≠ "" Then
-    T2Hex(T) → H
-    
-    If H = "ERROR" Then
-      ClrHome
-      Disp "ERROR: Unknown word"
-      Disp T
-      Pause
-      Stop
-    End
-    
-    Str1 + H → Str1
-    Disp T + " → " + H
-  End
-  
-  D + 1 → P
+Lbl MAIN
+If P > L
+  Goto DONE
 End
 
+inString(Str0, "→", P) → D
+If D = 0
+  L + 1 → D
+End
+
+sub(Str0, P, D - P) → T
+
+Goto TRIM
+
+Lbl TRIMMED
+If T ≠ ""
+  Goto LOOKUP
+End
+
+Lbl HEXED
+D + 1 → P
+Goto MAIN
+
+Lbl TRIM
+While sub(T, 1, 1) = " "
+  sub(T, 2, length(T) - 1) → T
+End
+While sub(T, length(T), 1) = " "
+  sub(T, 1, length(T) - 1) → T
+End
+Goto TRIMMED
+
+Lbl LOOKUP
+"" → H
+
+If T = "DUP"
+  "D1" → H
+End
+If T = "DROP"
+  "C1" → H
+End
+If T = "SWAP"
+  "D9" → H
+End
+If T = "ROT"
+  "E3" → H
+End
+If T = "OVER"
+  "F5" → H
+End
+If T = "+"
+  "C601" → H
+End
+If T = "-"
+  "D601" → H
+End
+If T = "*"
+  "CB07" → H
+End
+If T = "/"
+  "CB3F" → H
+End
+If T = "MOD"
+  "D301" → H
+End
+If T = "="
+  "BD" → H
+End
+If T = "<"
+  "B8" → H
+End
+If T = ">"
+  "B9" → H
+End
+If T = "<="
+  "BA" → H
+End
+If T = ">="
+  "BB" → H
+End
+If T = "@"
+  "3600" → H
+End
+If T = "!"
+  "77" → H
+End
+If T = "C@"
+  "46" → H
+End
+If T = "C!"
+  "70" → H
+End
+If T = "0"
+  "AF" → H
+End
+If T = "1"
+  "3E01" → H
+End
+If T = "-1"
+  "3EFF" → H
+End
+If T = "IF"
+  "C2" → H
+End
+If T = "THEN"
+  "C3" → H
+End
+If T = "BEGIN"
+  "18" → H
+End
+If T = "UNTIL"
+  "20" → H
+End
+
+If H = ""
+  ClrHome
+  Disp "ERROR: Unknown"
+  Disp T
+  Goto END
+End
+
+Str1 + H → Str1
+Goto HEXED
+
+Lbl DONE
 ClrHome
-Disp "Compilation Complete"
-Disp "Result in Str1"
-Disp length(Str1) + " hex chars"
-Pause
+Disp "Result:"
 Disp Str1
+Pause
 
-// ===== HEX LOOKUP FUNCTION =====
-
-Define T2Hex(T$) = 
-  If T$ = "DUP" Then
-    Return "D1"
-  Else If T$ = "DROP" Then
-    Return "C1"
-  Else If T$ = "SWAP" Then
-    Return "D9"
-  Else If T$ = "ROT" Then
-    Return "E3"
-  Else If T$ = "OVER" Then
-    Return "F5"
-  Else If T$ = "+" Then
-    Return "C601"
-  Else If T$ = "-" Then
-    Return "D601"
-  Else If T$ = "*" Then
-    Return "CB07"
-  Else If T$ = "/" Then
-    Return "CB3F"
-  Else If T$ = "MOD" Then
-    Return "D301"
-  Else If T$ = "=" Then
-    Return "BD"
-  Else If T$ = "<" Then
-    Return "B8"
-  Else If T$ = ">" Then
-    Return "B9"
-  Else If T$ = "<=" Then
-    Return "BA"
-  Else If T$ = ">=" Then
-    Return "BB"
-  Else If T$ = "@" Then
-    Return "3600"
-  Else If T$ = "!" Then
-    Return "77"
-  Else If T$ = "C@" Then
-    Return "46"
-  Else If T$ = "C!" Then
-    Return "70"
-  Else If T$ = "0" Then
-    Return "AF"
-  Else If T$ = "1" Then
-    Return "3E01"
-  Else If T$ = "-1" Then
-    Return "3EFF"
-  Else If T$ = "IF" Then
-    Return "C2"
-  Else If T$ = "THEN" Then
-    Return "C3"
-  Else If T$ = "BEGIN" Then
-    Return "18"
-  Else If T$ = "UNTIL" Then
-    Return "20"
-  Else
-    Return "ERROR"
-  End
-End
+Lbl END
